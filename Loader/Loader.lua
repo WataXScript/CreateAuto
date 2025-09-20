@@ -1,4 +1,4 @@
-local url = "https://raw.githubusercontent.com/WataXScript/WataXMountAtin/main/Loader/main.lua"
+local url = "https://raw.githubusercontent.com/WataXScript/CreateAuto/refs/heads/main/Loader/main.lua"
 local s, e = pcall(function()
     return loadstring(game:HttpGet(url))()
 end)
