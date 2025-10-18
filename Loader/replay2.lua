@@ -803,5 +803,8 @@ selectedLabel.InputBegan:Connect(function(inp)
     end
 end)
 
+FileSystem:getReplayFolder()
+
+
 print("[WataX] Replay UI ready. Click Start to choose a replay if none selected.")
 
