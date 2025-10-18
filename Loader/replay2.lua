@@ -139,67 +139,156 @@ function FileSystem:listFiles(base)
                 end
             end
             return out
-        end
-    end
+-- 🌐 Universal FileSystem (PC + Android) by WataX Mod
 
-    
-    local root = workspace:FindFirstChild(FS_BASE)
-    if root and root:IsA("Folder") then
-        local out = {}
-        for _,child in ipairs(root:GetChildren()) do
-            if child:IsA("StringValue") and child.Name:lower():match("%.json$") then
-                table.insert(out, child.Name)
-            end
-        end
-        return out
-    end
+local FS_BASE = "WataXRecord"
 
-    return {}
+-- ✅ Utility: safe wrappers biar gak error di executor yg gak support file IO
+local function safeIsFolder(path)
+	local ok, res = pcall(function() return isfolder(path) end)
+	return ok and res or false
 end
 
-function FileSystem:readFileFull(path) 
-    
-    local full = path
-    
-    if not safeReadFile(full) and safeIsFolder(FS_BASE) then
-       
-        local sep = "/"
-        full = FS_BASE .. sep .. path
-    end
-    local content = safeReadFile(full)
-    if content then return content end
-
- 
-    local parts = {}
-    for part in string.gmatch(path, "[^/\\]+") do table.insert(parts, part) end
-    local root = workspace:FindFirstChild(FS_BASE)
-    if not root or not root:IsA("Folder") then return nil end
-
-    local node = root
-    for i = 1, #parts do
-        local p = parts[i]
-        if i == #parts then
-            
-            local sv = node:FindFirstChild(p)
-            if sv and sv:IsA("StringValue") then
-                return sv.Value
-            else
-                return nil
-            end
-        else
-            node = node:FindFirstChild(p)
-            if not node or not node:IsA("Folder") then return nil end
-        end
-    end
-
-    return nil
+local function safeListFiles(path)
+	local ok, res = pcall(function() return listfiles(path) end)
+	if ok and typeof(res) == "table" then
+		return res
+	end
+	return {}
 end
 
+local function safeReadFile(path)
+	local ok, content = pcall(function() return readfile(path) end)
+	if ok and content then return content end
+	return nil
+end
 
+-- 🗂️ FileSystem API
+local FileSystem = {}
+
+function FileSystem:getReplayFolder()
+	if not safeIsFolder(FS_BASE) then
+		local ok, err = pcall(makefolder, FS_BASE)
+		if not ok then
+			warn("[WataX] Gagal buat folder: " .. tostring(err))
+		end
+	end
+	return FS_BASE
+end
+
+function FileSystem:listFolders(base)
+	base = base or FS_BASE
+
+	-- Coba mode file IO dulu
+	if safeIsFolder(base) then
+		local raw = safeListFiles(base)
+		local out = {}
+		for _, p in ipairs(raw) do
+			local name = p:match("([^/\\]+)$") or p
+			if safeIsFolder(base .. "/" .. name) then
+				table.insert(out, name)
+			end
+		end
+		return out
+	end
+
+	-- Fallback ke workspace (Android mode)
+	local root = workspace:FindFirstChild(FS_BASE)
+	if root and root:IsA("Folder") then
+		local out = {}
+		for _, child in ipairs(root:GetChildren()) do
+			if child:IsA("Folder") then
+				table.insert(out, child.Name)
+			end
+		end
+		return out
+	end
+
+	return {}
+end
+
+function FileSystem:listFiles(base)
+	base = base or FS_BASE
+
+	-- Mode file IO (PC)
+	if safeIsFolder(base) then
+		local raw = safeListFiles(base)
+		local out = {}
+		for _, p in ipairs(raw) do
+			local name = p:match("([^/\\]+)$") or p
+			if name:lower():match("%.json$") or name:lower():match("%.lua$") then
+				table.insert(out, name)
+			end
+		end
+		return out
+	end
+
+	-- Fallback workspace (Android)
+	local root = workspace:FindFirstChild(FS_BASE)
+	if root and root:IsA("Folder") then
+		local out = {}
+		for _, child in ipairs(root:GetChildren()) do
+			if child:IsA("StringValue") and (child.Name:lower():match("%.json$") or child.Name:lower():match("%.lua$")) then
+				table.insert(out, child.Name)
+			end
+		end
+		return out
+	end
+
+	return {}
+end
+
+function FileSystem:readFileFull(path)
+	local full = path
+
+	-- Coba baca langsung dari file system (PC)
+	local content = safeReadFile(full)
+	if content then return content end
+
+	if safeIsFolder(FS_BASE) then
+		local sep = "/"
+		full = FS_BASE .. sep .. path
+		content = safeReadFile(full)
+		if content then return content end
+	end
+
+	-- Fallback workspace (Android)
+	local parts = {}
+	for part in string.gmatch(path, "[^/\\]+") do
+		table.insert(parts, part)
+	end
+	local root = workspace:FindFirstChild(FS_BASE)
+	if not root or not root:IsA("Folder") then return nil end
+
+	local node = root
+	for i = 1, #parts do
+		local p = parts[i]
+		if i == #parts then
+			local sv = node:FindFirstChild(p)
+			if sv and sv:IsA("StringValue") then
+				return sv.Value
+			else
+				return nil
+			end
+		else
+			node = node:FindFirstChild(p)
+			if not node or not node:IsA("Folder") then
+				return nil
+			end
+		end
+	end
+
+	return nil
+end
+
+-- Helper join path
 local function joinPath(...)
-    local t = {...}
-    return table.concat(t, "/")
-end
+	return table.concat({...}, "/")
+        end
+        
+
+
+
 
 
 
