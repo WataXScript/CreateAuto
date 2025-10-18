@@ -18,7 +18,8 @@ local isReplayRunning = false
 
 
 
-local FS_BASE = "WataXRecord"
+local FS_BASE = "workspace/WataXRecord"
+
 
 
 local function safeIsFolder(path)
