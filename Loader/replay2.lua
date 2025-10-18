@@ -16,134 +16,11 @@ local playbackRate = 1
 local isReplayRunning = false
 
 
-local FileSystem = {}
 
-
-local hasIsFolder = type(isfolder) == "function"
-local hasListFiles = type(listfiles) == "function" or type(listfiles) == "userdata"
-local hasReadFile = type(readfile) == "function"
-
-
-local function safeIsFolder(path)
-    if hasIsFolder then
-        local ok, res = pcall(isfolder, path)
-        if ok then return res end
-    end
-    return false
-end
-
-local function safeListFiles(path)
-    if hasListFiles then
-        local ok, res = pcall(listfiles, path)
-        if ok and type(res) == "table" then
-            return res
-        elseif ok and type(res) == "string" then
-            
-            local t = {}
-            for line in res:gmatch("[^\r\n]+") do table.insert(t, line) end
-            return t
-        end
-    end
-    return nil
-end
-
-
-local function safeReadFile(path)
-    local success, content = pcall(readfile, path)
-    if success and content then
-        return content
-    end
-    return nil
-end
-
-local function safeListFiles(path)
-    local success, files = pcall(listfiles, path)
-    if success and typeof(files) == "table" then
-        return files
-    end
-    return {}
-end
-
-local function safeIsFolder(path)
-    local success, result = pcall(isfolder, path)
-    if success then
-        return result
-    end
-    return false
-end
-
--- 🌟 FileSystem API (gantikan versi lama)
-local FileSystem = {}
-
-function FileSystem:getReplayFolder()
-    
-    local folder = "WataXRecord"
-    if not safeIsFolder(folder) then
-        local ok, err = pcall(makefolder, folder)
-        if not ok then
-            warn("[WataX] Gagal buat folder: " .. tostring(err))
-        end
-    end
-    return folder
-end
-
-function FileSystem:getReplayList()
-    local folder = self:getReplayFolder()
-    local files = safeListFiles(folder)
-    local list = {}
-
-    for _, filePath in ipairs(files) do
-        if filePath:match("%.json$") or filePath:match("%.lua$") then
-            local name = filePath:match("[^/\\]+$")
-            table.insert(list, { name = name, path = filePath })
-        end
-    end
-
-    return list
-end
-
-function FileSystem:readFileFull(path)
-    local content = safeReadFile(path)
-    if not content then
-        warn("[WataX] Gagal baca file: " .. tostring(path))
-    end
-    return content
-end
-
-
-    
-    local root = workspace:FindFirstChild(FS_BASE)
-    if root and root:IsA("Folder") then
-        local out = {}
-        for _,child in ipairs(root:GetChildren()) do
-            if child:IsA("Folder") then table.insert(out, child.Name) end
-        end
-        return out
-    end
-
-    return {}
-end
-
-function FileSystem:listFiles(base)
-    base = base or FS_BASE
-   
-    if safeIsFolder(base) then
-        local raw = safeListFiles(base)
-        if raw then
-            local out = {}
-            for _,p in ipairs(raw) do
-                
-                local name = p:match("([^/\\]+)$") or p
-                if name:lower():match("%.json$") then
-                    table.insert(out, name)
-                end
-            end
-            return out
--- 🌐 Universal FileSystem (PC + Android) by WataX Mod
 
 local FS_BASE = "WataXRecord"
 
--- ✅ Utility: safe wrappers biar gak error di executor yg gak support file IO
+
 local function safeIsFolder(path)
 	local ok, res = pcall(function() return isfolder(path) end)
 	return ok and res or false
@@ -163,7 +40,7 @@ local function safeReadFile(path)
 	return nil
 end
 
--- 🗂️ FileSystem API
+
 local FileSystem = {}
 
 function FileSystem:getReplayFolder()
@@ -179,7 +56,7 @@ end
 function FileSystem:listFolders(base)
 	base = base or FS_BASE
 
-	-- Coba mode file IO dulu
+	
 	if safeIsFolder(base) then
 		local raw = safeListFiles(base)
 		local out = {}
@@ -192,7 +69,7 @@ function FileSystem:listFolders(base)
 		return out
 	end
 
-	-- Fallback ke workspace (Android mode)
+
 	local root = workspace:FindFirstChild(FS_BASE)
 	if root and root:IsA("Folder") then
 		local out = {}
@@ -210,7 +87,7 @@ end
 function FileSystem:listFiles(base)
 	base = base or FS_BASE
 
-	-- Mode file IO (PC)
+	
 	if safeIsFolder(base) then
 		local raw = safeListFiles(base)
 		local out = {}
@@ -223,7 +100,7 @@ function FileSystem:listFiles(base)
 		return out
 	end
 
-	-- Fallback workspace (Android)
+	
 	local root = workspace:FindFirstChild(FS_BASE)
 	if root and root:IsA("Folder") then
 		local out = {}
@@ -241,7 +118,7 @@ end
 function FileSystem:readFileFull(path)
 	local full = path
 
-	-- Coba baca langsung dari file system (PC)
+	
 	local content = safeReadFile(full)
 	if content then return content end
 
@@ -252,7 +129,7 @@ function FileSystem:readFileFull(path)
 		if content then return content end
 	end
 
-	-- Fallback workspace (Android)
+	
 	local parts = {}
 	for part in string.gmatch(path, "[^/\\]+") do
 		table.insert(parts, part)
@@ -281,13 +158,9 @@ function FileSystem:readFileFull(path)
 	return nil
 end
 
--- Helper join path
 local function joinPath(...)
 	return table.concat({...}, "/")
-        end
-        
-
-
+end
 
 
 
