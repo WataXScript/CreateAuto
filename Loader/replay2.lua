@@ -45,14 +45,30 @@ end
 local FileSystem = {}
 
 function FileSystem:getReplayFolder()
-	if not safeIsFolder(FS_BASE) then
-		local ok, err = pcall(makefolder, FS_BASE)
-		if not ok then
-			warn("[WataX] Gagal buat folder: " .. tostring(err))
-		end
-	end
-	return FS_BASE
+    local base = FS_BASE
+
+    
+    if not safeIsFolder(base) then
+        local ok, err = pcall(function()
+            makefolder(base)
+        end)
+        if not ok then
+            warn("[WataX] Gagal buat folder di root, coba path workspace: " .. tostring(err))
+            
+            base = (getworkingdirectory and getworkingdirectory() .. "/" .. FS_BASE) or base
+            pcall(makefolder, base)
+        end
+    end
+
+    
+    local ok, files = pcall(listfiles, base)
+    if not ok then
+        warn("[WataX] listfiles gagal, coba mode workspace fallback")
+    end
+
+    return base
 end
+
 
 function FileSystem:listFolders(base)
 	base = base or FS_BASE
