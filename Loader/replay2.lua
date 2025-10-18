@@ -47,38 +47,69 @@ local function safeListFiles(path)
     return nil
 end
 
+
 local function safeReadFile(path)
-    if hasReadFile then
-        local ok, res = pcall(readfile, path)
-        if ok then return res end
+    local success, content = pcall(readfile, path)
+    if success and content then
+        return content
     end
     return nil
 end
 
+local function safeListFiles(path)
+    local success, files = pcall(listfiles, path)
+    if success and typeof(files) == "table" then
+        return files
+    end
+    return {}
+end
 
-local FS_BASE = "WataXRecord" -- base folder (executor FS path or Workspace Folder)
+local function safeIsFolder(path)
+    local success, result = pcall(isfolder, path)
+    if success then
+        return result
+    end
+    return false
+end
 
-function FileSystem:listFolders(base)
-    base = base or FS_BASE
+-- 🌟 FileSystem API (gantikan versi lama)
+local FileSystem = {}
+
+function FileSystem:getReplayFolder()
     
-    if safeIsFolder(base) then
-        local raw = safeListFiles(base)
-        if raw then
-            local folders = {}
-            for _,p in ipairs(raw) do
-                
-                local ok, info = pcall(function()
-                    return isfolder and isfolder(p)
-                end)
-                if ok and info then
-                    
-                    local name = p:match("([^/\\]+)$") or p
-                    table.insert(folders, name)
-                end
-            end
-            return folders
+    local folder = "WataXRecord"
+    if not safeIsFolder(folder) then
+        local ok, err = pcall(makefolder, folder)
+        if not ok then
+            warn("[WataX] Gagal buat folder: " .. tostring(err))
         end
     end
+    return folder
+end
+
+function FileSystem:getReplayList()
+    local folder = self:getReplayFolder()
+    local files = safeListFiles(folder)
+    local list = {}
+
+    for _, filePath in ipairs(files) do
+        if filePath:match("%.json$") or filePath:match("%.lua$") then
+            local name = filePath:match("[^/\\]+$")
+            table.insert(list, { name = name, path = filePath })
+        end
+    end
+
+    return list
+end
+
+function FileSystem:readFileFull(path)
+    local content = safeReadFile(path)
+    if not content then
+        warn("[WataX] Gagal baca file: " .. tostring(path))
+    end
+    return content
+end
+
 
     
     local root = workspace:FindFirstChild(FS_BASE)
