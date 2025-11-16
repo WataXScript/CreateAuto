@@ -1,5 +1,4 @@
 
--- APA LU LIAT LIAT
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -10,7 +9,7 @@ ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.ResetOnSpawn = false
 
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 220, 0, 160)
+Frame.Size = UDim2.new(0, 220, 0, 200)
 Frame.Position = UDim2.new(0.35, 0, 0.35, 0)
 Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 Frame.BorderSizePixel = 0
@@ -68,6 +67,8 @@ end
 
 createButton("RecordBtn", "⏺ Record Menu", 50, "https://raw.githubusercontent.com/WataXScript/CreateAuto/refs/heads/main/Loader/record.lua")
 createButton("ReplayBtn", "▶ Replay Menu", 100, "https://raw.githubusercontent.com/WataXScript/CreateAuto/refs/heads/main/Loader/replay2.lua")
+createButton("ReplayBtn", "📁 File Menu", 150, "https://raw.githubusercontent.com/WataXScript/CreateAuto/refs/heads/main/Loader/file.lua")
+
 
 
 local CloseBtn = Instance.new("TextButton")
